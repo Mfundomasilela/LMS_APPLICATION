@@ -27,10 +27,13 @@ public class EmployeeController {
                             @RequestParam(value = "error", required = false) String error,
                             @RequestParam(value = "success", required = false) String success) {
 
-        User employee = userRepo.findByUsername(auth.getName()).orElseThrow();
+        // 🔥 Reload user from database
+        User employee = userRepo.findByUsername(auth.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         model.addAttribute("employeeName", employee.getFullName());
         model.addAttribute("leaves", leaveService.employeeLeaves(employee));
+        model.addAttribute("leaveBalance", employee.getLeaveBalance()); // 🔥 THIS FIXES NULL
         model.addAttribute("error", error);
         model.addAttribute("success", success);
 
@@ -44,7 +47,8 @@ public class EmployeeController {
                         @RequestParam LocalDate endDate,
                         @RequestParam String reason) {
 
-        User employee = userRepo.findByUsername(auth.getName()).orElseThrow();
+        User employee = userRepo.findByUsername(auth.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         try {
             leaveService.applyLeave(employee, leaveType, startDate, endDate, reason);
